@@ -1,0 +1,94 @@
+import datetime, time, pytz, threading, random
+
+def clock():
+    running = True
+    while running:
+        print("\r🕒 " + datetime.datetime.now(pytz.timezone("Asia/Karachi")).strftime("%I:%M:%S %p"), end="")
+        time.sleep(1)
+        if stop_flags["clock"]:
+            running = False
+            print("\nClock stopped.")
+
+def pyramid_loop():
+    while not stop_flags["pyramid"]:
+        inp = input("\nEnter pyramid height (or 'enough' to stop): ").strip()
+        if inp.lower() in ["enough", ""]:
+            stop_flags["pyramid"] = True
+            print("Stopped pyramid generator.")
+            break
+        try:
+            n = int(inp)
+            w = input("What should the pyramid be made of? ").strip()
+            for i in range(1, n + 1):
+                if stop_flags["pyramid"]:
+                    break
+                spaces = " " * (n - i)
+                blocks = w * (2 * i - 1)
+                print(spaces + blocks)
+        except ValueError:
+            print("Invalid number. Try again.")
+
+stop_flags = {"clock": False, "pyramid": False}
+threads = {"clock": None, "pyramid": None}
+
+while True:
+    c = input("\nCommand: ").strip().lower()
+
+    if c in ["exit"]:
+        for k in stop_flags:
+            stop_flags[k] = True
+        for t in threads.values():
+            if t and t.is_alive():
+                t.join()
+        break
+
+    elif c == "time":
+        if not threads["clock"] or not threads["clock"].is_alive():
+            stop_flags["clock"] = False
+            threads["clock"] = threading.Thread(target=clock)
+            threads["clock"].start()
+            print("Clock started. Type 'enough' to stop.")
+        else:
+            print("Clock already running.")
+
+    elif c == "pyramid generator":
+        if not threads["pyramid"] or not threads["pyramid"].is_alive():
+            stop_flags["pyramid"] = False
+            threads["pyramid"] = threading.Thread(target=pyramid_loop)
+            threads["pyramid"].start()
+        else:
+            print("Pyramid generator already running.")
+
+    elif c in ["stop", "enough", ""]:
+        for k in stop_flags:
+            stop_flags[k] = True
+        print("Stopped all running functions.")
+
+    elif c == "search the website" or "search the web".lower():
+        search = input("Search the website")
+        print(f"👉 https://www.{search}.com")
+
+    elif c == "plus":
+        try:
+            x = float(input("X? "))
+            y = float(input("Y? "))
+            print(x + y)
+        except ValueError:
+            print("Enter valid numbers.")
+    elif c == "minus":
+        try:
+            x = float(input("X? "))
+            y = float(input("Y? "))
+            print(x - y)
+        except ValueError:
+            print("Enter valid numbers.")
+    elif c == "coin toss":
+        print("Flipping... 🪙")
+        time.sleep(1)
+        print(random.choice(["heads", "tails"]))
+    elif c == "random number":
+        print(f"Random number 1-100: {random.randint(1,100)}")
+    elif c in ["help", "options"]:
+        print("Commands: google / spotify / time / stop / exit / plus / minus / coin toss / random number / pyramid generator / search the web")
+    else:
+        print("Unknown command. Type 'help'.")
